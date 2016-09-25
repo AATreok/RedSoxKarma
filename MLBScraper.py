@@ -3,11 +3,22 @@ from bs4 import BeautifulSoup
 import datetime
 
 rs_abr = "BOS"
-
+usehomedata = True
+useawaydata = False
 now = datetime.datetime.now()
 urlyear = "year_" + str(now.year)
 urlmonth = "month_" + str(now.month).zfill(2)
-urlday = "day_" + str(now.day - 1).zfill(2)
+urlday = "day_" + str(now.day).zfill(2)
+
+if usehomedata:
+    urlyear = "year_2016"
+    urlmonth = "month_06"
+    urlday = "day_04"
+elif useawaydata:
+    urlyear = "year_2016"
+    urlmonth = "month_08"
+    urlday = "day_19"
+
 url = 'http://gd2.mlb.com/components/game/mlb/'
 url = url + urlyear + "/" + urlmonth + "/" + urlday + "/miniscoreboard.xml"
 print("Connecting to url: " + url)
