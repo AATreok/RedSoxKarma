@@ -101,12 +101,31 @@ def netError(freezetime):
     time.sleep(60)
 
 
-def sendProbe():
+def sendProbe(redditobject):
     print('There is a URL error.')
 
 
 def makePost():
     print("Create karma post.")
+
+def initialaccess(prawobj):
+    user_client_id = 'DuOaY9FGDKSR8g'
+    user_client_secret = '4unjTUjPmrpxB9ZM1cOkb1kbdDk'
+    rs_redirect_uri = 'http://www.reddit.com/r/redsox'
+    prawobj.set_oauth_app_info(client_id= user_client_id, client_secret= user_client_secret,
+                         redirect_uri= rs_redirect_uri)
+    urlauth = prawobj.get_authorize_url('uniqueKey', 'identity read submit privatemessages', True)
+    webbrowser.open(urlauth)
+
+
+def refreshaccess(prawobj):
+    user_client_id = 'DuOaY9FGDKSR8g'
+    user_client_secret = '4unjTUjPmrpxB9ZM1cOkb1kbdDk'
+    rs_redirect_uri = 'http://www.reddit.com/r/redsox'
+    prawobj.set_oauth_app_info(client_id= user_client_id, client_secret= user_client_secret,
+                         redirect_uri= rs_redirect_uri)
+    access_information = r.get_access_information('ucMhG67IJ7cKARGRXAFXPTB3r30')
+    return access_information
 
 
 if __name__ == '__main__':
@@ -116,20 +135,15 @@ if __name__ == '__main__':
     # 2 --> Red Sox lost, wait until next GAME (not day, in case doublheader)
     # 4 --> continue, game in progress
     r = praw.Reddit('script:RedSoxManagment:v1.0 (by /u/andrewbenintendi)')
-    r.set_oauth_app_info(client_id='DuOaY9FGDKSR8g', client_secret='4unjTUjPmrpxB9ZM1cOkb1kbdDk',
-                         redirect_uri='http://www.reddit.com/r/redsox')
-    access_information = r.refresh_access_information('45420599-DB5wimeF9Q7yH9yBfEM1Broz_Pg')
-    #urlauth = r.get_authorize_url('uniqueKey', 'identity read submit', True)
-    #webbrowser.open(urlauth)
-    #access_information = r.get_access_information('0vjqrafW0oX_I3BlKLPKVr_0WOU')
-    print(access_information)
-    authenticated_user = r.get_me()
-
-    print(authenticated_user.name)
+    #initialaccess(r)
+    refreshaccess(r)
+    sys.exit()
+    #access_information = r.refresh_access_information('gnhGZI35FkdWspMo66en0eaKd8k')
+    #authenticated_user = r.get_me()
+    #print(authenticated_user.name)
     print("Validation successful, attempting to submit")
-    #r.login(username = 'andrewbenintendi', password='broadcastsli')
     r.submit("botbottestbed", "THE RED SOX WON 2", "the red sox won electric boogaloo")
-   # r.submit(subreddit = 'botbottestbed', title = "THE RED SOX WON UPVOTE PARTY!")
+    r.send_message("AATroop", "Warning", "URL check has failed 5 times, please check MLB and personal server status!")
     sys.exit()
     thistime = datetime.datetime.now()
     netsafe = 0
