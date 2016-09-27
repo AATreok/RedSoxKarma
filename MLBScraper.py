@@ -1,9 +1,11 @@
 import urllib.request
 import urllib.error
-from bs4 import BeautifulSoup
 import datetime
-import time.sleep
+import time
 import sys
+import praw
+import webbrowser
+from bs4 import BeautifulSoup
 
 
 def getGameStatus(team):
@@ -113,12 +115,29 @@ if __name__ == '__main__':
     # 1 --> Red Sox won (home or away)
     # 2 --> Red Sox lost, wait until next GAME (not day, in case doublheader)
     # 4 --> continue, game in progress
+    r = praw.Reddit('script:RedSoxManagment:v1.0 (by /u/andrewbenintendi)')
+    r.set_oauth_app_info(client_id='DuOaY9FGDKSR8g', client_secret='4unjTUjPmrpxB9ZM1cOkb1kbdDk',
+                         redirect_uri='http://www.reddit.com/r/redsox')
+    access_information = r.refresh_access_information('45420599-DB5wimeF9Q7yH9yBfEM1Broz_Pg')
+    #urlauth = r.get_authorize_url('uniqueKey', 'identity read submit', True)
+    #webbrowser.open(urlauth)
+    #access_information = r.get_access_information('0vjqrafW0oX_I3BlKLPKVr_0WOU')
+    print(access_information)
+    authenticated_user = r.get_me()
+
+    print(authenticated_user.name)
+    print("Validation successful, attempting to submit")
+    #r.login(username = 'andrewbenintendi', password='broadcastsli')
+    r.submit("botbottestbed", "THE RED SOX WON 2", "the red sox won electric boogaloo")
+   # r.submit(subreddit = 'botbottestbed', title = "THE RED SOX WON UPVOTE PARTY!")
+    sys.exit()
     thistime = datetime.datetime.now()
-    # starts the bot; runs indefinitely
     netsafe = 0
+    # starts the bot; runs indefinitely
     while True:
         gamestatus = getGameStatus('ana')
         while gamestatus != 1:
+            print("Checking game status...")
             if gamestatus == -1:
                 if netsafe >= 5:
                     sendProbe()
@@ -134,3 +153,5 @@ if __name__ == '__main__':
             if gamestatus == 4:
                 # 60 second pause, then recheck
                 time.sleep(60)
+            gamestatus = getGameStatus('ana')
+        sys.exit()
