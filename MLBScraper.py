@@ -90,7 +90,7 @@ def getGameStatus(team):
 
 def nextDay(freezetime):
     safeiter = 0
-    while (freezetime.day < datetime.datetime.now().day()):
+    while (freezetime.day() < datetime.datetime.now().day()):
         safeiter += 1
         time.sleep(3600)
         if safeiter >= 23:
@@ -101,12 +101,14 @@ def netError(freezetime):
     time.sleep(60)
 
 
-def sendProbe(redditobject):
-    print('There is a URL error.')
+def sendProbe(prawobj):
+    prawobj.send_message('AATroop', 'Warning',
+                         'URL check has failed 5 times, please check MLB and personal server status!')
 
 
-def makePost():
-    print("Create karma post.")
+def makePost(prawobj):
+    prawobj.submit('botbottestbed', 'THE RED SOX WON UPVOTE PARTY', 'THE REDSOX WON!')
+
 
 def initialaccess(prawobj):
     user_client_id = 'DuOaY9FGDKSR8g'
@@ -122,10 +124,20 @@ def refreshaccess(prawobj):
     user_client_id = 'DuOaY9FGDKSR8g'
     user_client_secret = '4unjTUjPmrpxB9ZM1cOkb1kbdDk'
     rs_redirect_uri = 'http://www.reddit.com/r/redsox'
+    access_key = 'EYh2n3FBEXnf5XsjKaD43eZ9atg'
     prawobj.set_oauth_app_info(client_id= user_client_id, client_secret= user_client_secret,
                          redirect_uri= rs_redirect_uri)
-    access_information = r.get_access_information('ucMhG67IJ7cKARGRXAFXPTB3r30')
+    access_information = prawobj.get_access_information(access_key)
     return access_information
+
+
+def refreshtoken(prawobj):
+    user_client_id = 'DuOaY9FGDKSR8g'
+    user_client_secret = '4unjTUjPmrpxB9ZM1cOkb1kbdDk'
+    rs_redirect_uri = 'http://www.reddit.com/r/redsox'
+    prawobj.set_oauth_app_info(client_id=user_client_id, client_secret=user_client_secret,
+                               redirect_uri=rs_redirect_uri)
+    prawobj.refresh_access_information('45420599-D7uYF0c9RQ-GHdFZO1pgzB7drmk')
 
 
 if __name__ == '__main__':
@@ -136,36 +148,30 @@ if __name__ == '__main__':
     # 4 --> continue, game in progress
     r = praw.Reddit('script:RedSoxManagment:v1.0 (by /u/andrewbenintendi)')
     #initialaccess(r)
-    refreshaccess(r)
-    sys.exit()
-    #access_information = r.refresh_access_information('gnhGZI35FkdWspMo66en0eaKd8k')
-    #authenticated_user = r.get_me()
-    #print(authenticated_user.name)
-    print("Validation successful, attempting to submit")
-    r.submit("botbottestbed", "THE RED SOX WON 2", "the red sox won electric boogaloo")
-    r.send_message("AATroop", "Warning", "URL check has failed 5 times, please check MLB and personal server status!")
-    sys.exit()
-    thistime = datetime.datetime.now()
+    #print(refreshaccess(r))
+    #sys.exit()
+    refreshtoken(r)
+    authenticated_user = r.get_me()
+    print(authenticated_user.name)
     netsafe = 0
+    lastrefresh = datetime.datetime.now()
     # starts the bot; runs indefinitely
     while True:
         gamestatus = getGameStatus('ana')
-        while gamestatus != 1:
-            print("Checking game status...")
-            if gamestatus == -1:
-                if netsafe >= 5:
-                    sendProbe()
-                    sys.exit()
-                netsafe += 1
-                netError(thistime)
-            if gamestatus == 0:
-                nextDay(thistime)
-            if gamestatus == 1:
-                makePost(thistime)
-            if gamestatus == 2:
-                makePost(thistime)
-            if gamestatus == 4:
-                # 60 second pause, then recheck
-                time.sleep(60)
-            gamestatus = getGameStatus('ana')
-        sys.exit()
+        thistime = datetime.datetime.now()
+        print('Gamestatus is ' + str(gamestatus))
+        if gamestatus == -1:
+            if netsafe >= 5:
+                sendProbe()
+                sys.exit()
+            netsafe += 1
+            netError(thistime)
+        if gamestatus == 0:
+            nextDay(thistime)
+        if gamestatus == 1:
+            makePost(r)
+        if gamestatus == 2:
+            time.sleep(28800)
+        if gamestatus == 4:
+            # 60 second pause, then recheck
+            time.sleep(60)
