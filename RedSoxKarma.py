@@ -90,7 +90,7 @@ def getGameStatus(team):
 
 def nextDay(freezetime):
     safeiter = 0
-    while (freezetime.day() < datetime.datetime.now().day()):
+    while (freezetime.day == datetime.datetime.now().day):
         safeiter += 1
         time.sleep(3600)
         if safeiter >= 23:
@@ -108,14 +108,14 @@ def sendProbe(prawobj):
 
 def makePost(prawobj):
     prawobj.submit('botbottestbed', 'THE RED SOX WON UPVOTE PARTY', 'THE REDSOX WON!')
-
+    time.sleep(28800)
 
 def initialaccess(prawobj):
     user_client_id = 'DuOaY9FGDKSR8g'
     user_client_secret = '4unjTUjPmrpxB9ZM1cOkb1kbdDk'
     rs_redirect_uri = 'http://www.reddit.com/r/redsox'
-    prawobj.set_oauth_app_info(client_id= user_client_id, client_secret= user_client_secret,
-                         redirect_uri= rs_redirect_uri)
+    prawobj.set_oauth_app_info(client_id=user_client_id, client_secret=user_client_secret,
+                               redirect_uri=rs_redirect_uri)
     urlauth = prawobj.get_authorize_url('uniqueKey', 'identity read submit privatemessages', True)
     webbrowser.open(urlauth)
 
@@ -125,8 +125,8 @@ def refreshaccess(prawobj):
     user_client_secret = '4unjTUjPmrpxB9ZM1cOkb1kbdDk'
     rs_redirect_uri = 'http://www.reddit.com/r/redsox'
     access_key = 'EYh2n3FBEXnf5XsjKaD43eZ9atg'
-    prawobj.set_oauth_app_info(client_id= user_client_id, client_secret= user_client_secret,
-                         redirect_uri= rs_redirect_uri)
+    prawobj.set_oauth_app_info(client_id=user_client_id, client_secret=user_client_secret,
+                               redirect_uri=rs_redirect_uri)
     access_information = prawobj.get_access_information(access_key)
     return access_information
 
@@ -147,9 +147,9 @@ if __name__ == '__main__':
     # 2 --> Red Sox lost, wait until next GAME (not day, in case doublheader)
     # 4 --> continue, game in progress
     r = praw.Reddit('script:RedSoxManagment:v1.0 (by /u/andrewbenintendi)')
-    #initialaccess(r)
-    #print(refreshaccess(r))
-    #sys.exit()
+    # initialaccess(r)
+    # print(refreshaccess(r))
+    # sys.exit()
     refreshtoken(r)
     authenticated_user = r.get_me()
     print(authenticated_user.name)
@@ -157,21 +157,25 @@ if __name__ == '__main__':
     lastrefresh = datetime.datetime.now()
     # starts the bot; runs indefinitely
     while True:
-        gamestatus = getGameStatus('ana')
+        gamestatus = getGameStatus('bos')
         thistime = datetime.datetime.now()
+        if((thistime - lastrefresh).seconds >= 3600):
+            print("refreshing token...")
+            refreshtoken(r)
         print('Gamestatus is ' + str(gamestatus))
         if gamestatus == -1:
             if netsafe >= 5:
                 sendProbe()
-                sys.exit()
+                time.sleep(3600)
             netsafe += 1
             netError(thistime)
-        if gamestatus == 0:
+        elif gamestatus == 0:
             nextDay(thistime)
-        if gamestatus == 1:
+        elif gamestatus == 1:
             makePost(r)
-        if gamestatus == 2:
+        elif gamestatus == 2:
             time.sleep(28800)
-        if gamestatus == 4:
+        elif gamestatus == 4:
             # 60 second pause, then recheck
             time.sleep(60)
+        lastrefresh = thistime
