@@ -45,12 +45,12 @@ def getGameStatus(team):
         tags = soup.findAll('game', {'home_file_code': team_abr})
         team_home = True
         if not tags:
-            print('Game does not exist yet, or Red Sox are not playing today ', now.month, '/', now.day, '/', now.year)
+            print('Red Sox are not playing today ', now.month, '/', now.day, '/', now.year)
             print('Exiting with status 0')
             return 0
 
     for game_info in tags:
-        if game_info['status'] == 'Final':
+        if game_info['status'] == 'Final' or game_info['status'] == 'Game Over':
             if team_home:
                 print('Game is finalized!')
                 if int(game_info['home_team_runs']) > int(game_info['away_team_runs']):
@@ -164,16 +164,24 @@ if __name__ == '__main__':
             refreshtoken(r)
         print('Gamestatus is ' + str(gamestatus))
         if gamestatus == -1:
+            # URL error
             if netsafe >= 5:
                 sendProbe()
                 time.sleep(3600)
             netsafe += 1
             netError(thistime)
         elif gamestatus == 0:
+            # no game today; wait until next day
+            # believe this could cause an issue if done
+            # nearly at midnight, where it skips a day
+            # but I don't know if this is technically possible
+            # unless the bot is started at that time
             nextDay(thistime)
         elif gamestatus == 1:
+            # game won! Make post, then sleep bot.
             makePost(r)
         elif gamestatus == 2:
+            # game lost; sleep bot until next game
             time.sleep(28800)
         elif gamestatus == 4:
             # 60 second pause, then recheck
