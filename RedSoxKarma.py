@@ -149,7 +149,6 @@ if __name__ == '__main__':
     print(authenticated_user.name)
     netsafe = 0
     lastrefresh = datetime.datetime.now()
-    sendProbe(r)
     # starts the bot; runs indefinitely
     while True:
         gamestatus = getGameStatus('bos')
