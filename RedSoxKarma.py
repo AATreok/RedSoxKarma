@@ -7,7 +7,11 @@ import praw
 import webbrowser
 from bs4 import BeautifulSoup
 
-
+# -1 --> error, check for multiple errors and send notice if problem persists for over 1>hr
+# 0 --> no game, wait until next day
+# 1 --> Red Sox won (home or away)
+# 2 --> Red Sox lost, wait until next GAME (not day, in case doublheader)
+# 4 --> continue, game in progress
 def getGameStatus(team):
     team_abr = team
     usehomedata = False
@@ -111,9 +115,6 @@ def makePost(prawobj):
     time.sleep(28800)
 
 def initialaccess(prawobj):
-    user_client_id = 'DuOaY9FGDKSR8g'
-    user_client_secret = '4unjTUjPmrpxB9ZM1cOkb1kbdDk'
-    rs_redirect_uri = 'http://www.reddit.com/r/redsox'
     prawobj.set_oauth_app_info(client_id=user_client_id, client_secret=user_client_secret,
                                redirect_uri=rs_redirect_uri)
     urlauth = prawobj.get_authorize_url('uniqueKey', 'identity read submit privatemessages', True)
@@ -121,10 +122,7 @@ def initialaccess(prawobj):
 
 
 def refreshaccess(prawobj):
-    user_client_id = 'DuOaY9FGDKSR8g'
-    user_client_secret = '4unjTUjPmrpxB9ZM1cOkb1kbdDk'
-    rs_redirect_uri = 'http://www.reddit.com/r/redsox'
-    access_key = 'EYh2n3FBEXnf5XsjKaD43eZ9atg'
+    access_key = 'BHS9gNIxHjnD3rnvkE1OTgbNuqI'
     prawobj.set_oauth_app_info(client_id=user_client_id, client_secret=user_client_secret,
                                redirect_uri=rs_redirect_uri)
     access_information = prawobj.get_access_information(access_key)
@@ -132,21 +130,18 @@ def refreshaccess(prawobj):
 
 
 def refreshtoken(prawobj):
-    user_client_id = 'DuOaY9FGDKSR8g'
-    user_client_secret = '4unjTUjPmrpxB9ZM1cOkb1kbdDk'
-    rs_redirect_uri = 'http://www.reddit.com/r/redsox'
+    refresh_token = '63398004-sIFMXiIG1EWqHExsYWtGtHO7vFc'
     prawobj.set_oauth_app_info(client_id=user_client_id, client_secret=user_client_secret,
                                redirect_uri=rs_redirect_uri)
-    prawobj.refresh_access_information('45420599-D7uYF0c9RQ-GHdFZO1pgzB7drmk')
-
+    access_information = prawobj.refresh_access_information(refresh_token)
+    return access_information
 
 if __name__ == '__main__':
-    # -1 --> error, check for multiple errors and send notice if problem persists for over 1>hr
-    # 0 --> no game, wait until next day
-    # 1 --> Red Sox won (home or away)
-    # 2 --> Red Sox lost, wait until next GAME (not day, in case doublheader)
-    # 4 --> continue, game in progress
-    r = praw.Reddit('script:RedSoxManagment:v1.0 (by /u/andrewbenintendi)')
+    user_client_id = 'xZG4bAgVxL67vw'
+    user_client_secret = 'OLrL4inEdstX7HPHQid6F5IHWI8'
+    rs_redirect_uri = 'http://www.reddit.com/r/redsox'
+
+    r = praw.Reddit('script:RedSoxUpvote:v1.0 (by /u/AATroop + /u/DatabaseCentral)')
     # initialaccess(r)
     # print(refreshaccess(r))
     refreshtoken(r)
@@ -154,6 +149,7 @@ if __name__ == '__main__':
     print(authenticated_user.name)
     netsafe = 0
     lastrefresh = datetime.datetime.now()
+    sendProbe(r)
     # starts the bot; runs indefinitely
     while True:
         gamestatus = getGameStatus('bos')
