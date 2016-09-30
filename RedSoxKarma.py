@@ -111,7 +111,7 @@ def sendProbe(prawobj):
 
 
 def makePost(prawobj):
-    prawobj.submit('botbottestbed', 'THE RED SOX WON UPVOTE PARTY', 'THE REDSOX WON!')
+    prawobj.submit('RedSox', 'THE RED SOX WON UPVOTE PARTY', '')
     time.sleep(28800)
 
 def initialaccess(prawobj):
