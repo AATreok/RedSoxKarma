@@ -141,7 +141,7 @@ if __name__ == '__main__':
     user_client_secret = 'OLrL4inEdstX7HPHQid6F5IHWI8'
     rs_redirect_uri = 'http://www.reddit.com/r/redsox'
 
-    r = praw.Reddit('script:RedSoxUpvote:v1.0 (by /u/AATroop + /u/DatabaseCentral)')
+    r = praw.Reddit('script:RedSoxUpvote:v1.0 (by /u/AATroop + /u/DatabaseCentral')
     # initialaccess(r)
     # print(refreshaccess(r))
     refreshtoken(r)
