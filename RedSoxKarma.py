@@ -149,7 +149,6 @@ if __name__ == '__main__':
     r = praw.Reddit('script:RedSoxManagment:v1.0 (by /u/andrewbenintendi)')
     # initialaccess(r)
     # print(refreshaccess(r))
-    # sys.exit()
     refreshtoken(r)
     authenticated_user = r.get_me()
     print(authenticated_user.name)
