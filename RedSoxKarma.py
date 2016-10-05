@@ -7,17 +7,27 @@ import praw
 import webbrowser
 from bs4 import BeautifulSoup
 
+class GameResult:
+    def __init__(self, code_result, team_name, opponent, score_rs, score_opp, game_date):
+        self.code_result = code_result
+        self.team_name = team_name
+        self.opponent = opponent
+        self.score_rs = score_rs
+        self.score_opp = score_opp
+        self.game_date = game_date
+
+
 # -1 --> error, check for multiple errors and send notice if problem persists for over 1>hr
 # 0 --> no game, wait until next day
 # 1 --> Red Sox won (home or away)
 # 2 --> Red Sox lost, wait until next GAME (not day, in case doublheader)
 # 4 --> continue, game in progress
-def getGameStatus(team):
+def getgamestatus(team, gametime):
     team_abr = team
     usehomedata = False
     useawaydata = False
     team_home = False
-    now = datetime.datetime.now()
+    now = gametime
     urlyear = 'year_' + str(now.year)
     urlmonth = 'month_' + str(now.month).zfill(2)
     urlday = 'day_' + str(now.day).zfill(2)
@@ -31,16 +41,20 @@ def getGameStatus(team):
         urlmonth = 'month_08'
         urlday = 'day_19'
 
+    gameresult = GameResult(None, None, None, None, None, now)
     url = 'http://gd2.mlb.com/components/game/mlb/'
     url = url + urlyear + '/' + urlmonth + '/' + urlday + '/miniscoreboard.xml'
     print('Connecting to url: ' + url)
-
+    print('The game date is ' + str(now.day) + '/' + str(now.month) + '/' + str(now.year))
+    current_time = datetime.datetime.now()
+    print('The current date is ' + str(current_time.day) + '/' + str(current_time.month) + '/' + str(current_time.year))
     try:
         with urllib.request.urlopen(url) as response:
             xml = response.read()
     except (urllib.error.HTTPError, urllib.error.URLError, Exception) as e:
         print("HTTPError message " + str(e))
-        return -1
+        gameresult.code_result = -1
+        return gameresult
 
     soup = BeautifulSoup(xml, 'xml')
     tags = soup.findAll('game', {'away_file_code': team_abr})
@@ -51,7 +65,8 @@ def getGameStatus(team):
         if not tags:
             print('Red Sox are not playing today ', now.month, '/', now.day, '/', now.year)
             print('Exiting with status 0')
-            return 0
+            gameresult.code_result = 0
+            return gameresult
 
     for game_info in tags:
         if game_info['status'] == 'Final' or game_info['status'] == 'Game Over':
@@ -63,14 +78,20 @@ def getGameStatus(team):
                           game_info[
                               'away_team_name'] + ' ' +
                           game_info['away_team_runs'])
-                    return 1
+                    gameresult.code_result = 1
+                    gameresult.team_name = game_info['home_team_name']
+                    gameresult.opponent = game_info['away_team_name']
+                    gameresult.score_opp = game_info['away_team_runs']
+                    gameresult.score_rs = game_info['home_team_runs']
+                    return gameresult
                 else:
                     print('The ' + game_info['home_team_name'] + ' lost :( [home]...')
                     print('Final score: ' + game_info['home_team_name'] + ' ' + game_info['home_team_runs'] + ' ' +
                           game_info[
                               'away_team_name'] + ' ' +
                           game_info['away_team_runs'])
-                    return 2
+                    gameresult.code_result = 2
+                    return gameresult
             else:
                 print('Game is finalized!')
                 if int(game_info['away_team_runs']) > int(game_info['home_team_runs']):
@@ -79,18 +100,27 @@ def getGameStatus(team):
                           game_info[
                               'home_team_name'] + ' ' +
                           game_info['home_team_runs'])
-                    return 1
+                    gameresult.code_result = 1
+                    gameresult.team_name = game_info['away_team_name']
+                    gameresult.opponent = game_info['home_team_name']
+                    gameresult.score_opp = game_info['home_team_runs']
+                    gameresult.score_rs = game_info['away_team_runs']
+                    return gameresult
                 else:
                     print('The ' + game_info['away_team_name'] + ' lost :( [away]...')
                     print('Final score: ' + game_info['away_team_name'] + ' ' + game_info['away_team_runs'] + ' ' +
                           game_info[
                               'home_team_name'] + ' ' +
                           game_info['home_team_runs'])
-                    return 2
+                    gameresult.code_result = 2
+                    return gameresult
         else:
             print("Game hasn't started or in progress (but exists).")
-            return 4
+            gameresult.code_result = 4
+            return gameresult
 
+def seriesText(gameresult):
+    return ''
 
 def nextDay(freezetime):
     safeiter = 0
@@ -110,9 +140,16 @@ def sendProbe(prawobj):
                          'URL check has failed 5 times, please check MLB and personal server status!')
 
 
-def makePost(prawobj):
+def makePost(prawobj, gammeresult):
     prawobj.submit('RedSox', 'THE RED SOX WON UPVOTE PARTY', '')
     time.sleep(28800)
+
+def fakePost(prawobj, gameresult):
+    title_text = 'THE ' + str(gameresult.team_name).upper() + ' BEAT THE ' + str(gameresult.opponent).upper() + ' UPVOTE PARTY!'
+    post_text = str(gameresult.team_name).upper() + ' BEAT THE ' + str(gameresult.opponent).upper() + ': ' + gameresult.score_rs + ' TO ' + gameresult.score_opp
+    post_text = post_text + seriesText(gameresult)
+    prawobj.submit('botbottestbed', title_text, post_text)
+
 
 def initialaccess(prawobj):
     prawobj.set_oauth_app_info(client_id=user_client_id, client_secret=user_client_secret,
@@ -149,35 +186,43 @@ if __name__ == '__main__':
     print(authenticated_user.name)
     netsafe = 0
     lastrefresh = datetime.datetime.now()
+    thistime = lastrefresh
+    fakePost(r, GameResult(1, "Red Sox", "Opponent", "40", "0", game_date=lastrefresh))
     # starts the bot; runs indefinitely
     while True:
-        gamestatus = getGameStatus('bos')
-        thistime = datetime.datetime.now()
-        if((thistime - lastrefresh).seconds >= 3600):
-            print("refreshing token...")
-            refreshtoken(r)
-        print('Gamestatus is ' + str(gamestatus))
-        if gamestatus == -1:
+        gamestatus = getgamestatus('nym', thistime)
+        print('Gamestatus is ' + str(gamestatus.code_result))
+        if gamestatus.code_result == -1:
             # URL error
             if netsafe >= 5:
                 sendProbe()
                 time.sleep(3600)
             netsafe += 1
             netError(thistime)
-        elif gamestatus == 0:
+            thistime = datetime.datetime.now()
+        elif gamestatus.code_result == 0:
             # no game today; wait until next day
             # believe this could cause an issue if done
             # nearly at midnight, where it skips a day
             # but I don't know if this is technically possible
             # unless the bot is started at that time
             nextDay(thistime)
-        elif gamestatus == 1:
+            thistime = datetime.datetime.now()
+        elif gamestatus.code_result == 1:
             # game won! Make post, then sleep bot.
-            makePost(r)
-        elif gamestatus == 2:
+            fakePost(r, gamestatus)
+            thistime = datetime.datetime.now()
+        elif gamestatus.code_result == 2:
             # game lost; sleep bot until next game
             time.sleep(28800)
-        elif gamestatus == 4:
+            thistime = datetime.datetime.now()
+        elif gamestatus.code_result == 4:
             # 60 second pause, then recheck
+            # IMPORTANT: Time is not updated so if game goes past midnight
+            # it keeps on the current date
             time.sleep(60)
+        #refreshes token if the (nearly current) time exeeds the last refresh by 60 minutes
+        if (thistime - lastrefresh).seconds >= 3600:
+            print("refreshing token...")
+            refreshtoken(r)
         lastrefresh = thistime
