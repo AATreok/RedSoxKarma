@@ -5,7 +5,9 @@ import time
 import sys
 import praw
 import webbrowser
+import configparser
 from bs4 import BeautifulSoup
+
 
 class GameResult:
     def __init__(self, code_result, team_name, opponent, score_rs, score_opp, game_date):
@@ -174,7 +176,13 @@ def refreshtoken(prawobj):
     return access_information
 
 if __name__ == '__main__':
-    user_client_id = 'xZG4bAgVxL67vw'
+    print("Hello world!");
+    config = configparser.ConfigParser();
+    config.read('config.ini');
+    print(config['Bot Info']['ClientID'])
+    print(config['Bot Info']['Secret'])
+    quit();
+    user_client_id = 'CIohiHVs-5KaJw'
     user_client_secret = 'OLrL4inEdstX7HPHQid6F5IHWI8'
     rs_redirect_uri = 'http://www.reddit.com/r/redsox'
 
