@@ -153,12 +153,15 @@ def fakePost(prawobj, gameresult):
     prawobj.submit('botbottestbed', title_text, post_text)
 
 
-def initialaccess(prawobj):
-    prawobj.set_oauth_app_info(client_id=user_client_id, client_secret=user_client_secret,
-                               redirect_uri=rs_redirect_uri)
-    urlauth = prawobj.get_authorize_url('uniqueKey', 'identity read submit privatemessages', True)
+def initialauthorization(prawobj):
+    urlauth = prawobj.auth.url(['identity', 'edit', 'history', 'modconfig', 'modflair', 'modposts',
+                'modwiki', 'privatemessages', 'read', 'report', 'submit', 'vote', 'wikiedit', 'wikiread'],
+               duration='permanent', state=rs_redirect_uri)
     webbrowser.open(urlauth)
 
+def reinitialize():
+    return praw.Reddit(client_id=user_client_id, client_secret=user_client_secret,
+                          refresh_token=config['Bot Info']['Token'],user_agent=user_agent)
 
 def refreshaccess(prawobj):
     access_key = 'BHS9gNIxHjnD3rnvkE1OTgbNuqI'
@@ -181,16 +184,27 @@ if __name__ == '__main__':
     config.read('config.ini');
     print(config['Bot Info']['ClientID'])
     print(config['Bot Info']['Secret'])
-    quit();
-    user_client_id = 'CIohiHVs-5KaJw'
-    user_client_secret = 'OLrL4inEdstX7HPHQid6F5IHWI8'
-    rs_redirect_uri = 'http://www.reddit.com/r/redsox'
 
-    r = praw.Reddit('script:RedSoxUpvote:v1.0 (by /u/AATroop + /u/DatabaseCentral')
-    # initialaccess(r)
+    user_client_id = config['Bot Info']['ClientID']
+    user_client_secret = config['Bot Info']['Secret']
+    rs_redirect_uri = 'http://localhost:8080'
+    user_agent = 'RedsoxUpvoteBot:v1.1 by /u/AATroop'
+    r = praw.Reddit(user_agent=user_agent, client_id=user_client_id, client_secret=user_client_secret,
+                    redirect_uri=rs_redirect_uri)#'script:RedSoxUpvote:v1.0 (by /u/AATroop, /u/DatabaseCentral')
+    #initialauthorization(r)
+    r = reinitialize()
+    print(r.auth.scopes())
+    r.redditor('AATroop').message('Test', 'test message from your favorite bot')
+    #print(r.auth.authorize(config['Bot Info']['Code']))
+    #print(r.user.me())
+    quit();
+    initialaccess(r)
     # print(refreshaccess(r))
     refreshtoken(r)
     authenticated_user = r.get_me()
+    print(authenticated_user.name)
+    fakePost(r, GameResult(1, "Red Sox", "Opponent", "40", "0", game_date=lastrefresh))
+    quit();
     print(authenticated_user.name)
     netsafe = 0
     lastrefresh = datetime.datetime.now()
