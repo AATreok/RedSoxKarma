@@ -150,7 +150,8 @@ def fakePost(prawobj, gameresult):
     title_text = 'THE ' + str(gameresult.team_name).upper() + ' BEAT THE ' + str(gameresult.opponent).upper() + ' UPVOTE PARTY!'
     post_text = str(gameresult.team_name).upper() + ' BEAT THE ' + str(gameresult.opponent).upper() + ': ' + gameresult.score_rs + ' TO ' + gameresult.score_opp
     post_text = post_text + seriesText(gameresult)
-    prawobj.submit('botbottestbed', title_text, post_text)
+    prawobj.subreddit('botbottestbed').submit(title=title_text,selftext=post_text,send_replies=False)
+    #prawobj.submit('botbottestbed', title_text, post_text) archaic
 
 
 def initialauthorization(prawobj):
@@ -194,22 +195,14 @@ if __name__ == '__main__':
     #initialauthorization(r)
     r = reinitialize()
     print(r.auth.scopes())
-    r.redditor('AATroop').message('Test', 'test message from your favorite bot')
-    #print(r.auth.authorize(config['Bot Info']['Code']))
+    #r.redditor('AATroop').message('Test', 'test message from your favorite bot')
     #print(r.user.me())
-    quit();
-    initialaccess(r)
-    # print(refreshaccess(r))
-    refreshtoken(r)
-    authenticated_user = r.get_me()
-    print(authenticated_user.name)
-    fakePost(r, GameResult(1, "Red Sox", "Opponent", "40", "0", game_date=lastrefresh))
-    quit();
-    print(authenticated_user.name)
+
     netsafe = 0
     lastrefresh = datetime.datetime.now()
     thistime = lastrefresh
     fakePost(r, GameResult(1, "Red Sox", "Opponent", "40", "0", game_date=lastrefresh))
+    quit();
     # starts the bot; runs indefinitely
     while True:
         gamestatus = getgamestatus('nym', thistime)
