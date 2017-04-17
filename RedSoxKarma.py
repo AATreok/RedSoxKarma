@@ -2,10 +2,10 @@ import urllib.request
 import urllib.error
 import datetime
 import time
-import sys
 import praw
 import webbrowser
 import configparser
+import GameUpdater
 from bs4 import BeautifulSoup
 
 
@@ -195,14 +195,9 @@ if __name__ == '__main__':
     #initialauthorization(r)
     r = reinitialize()
     print(r.auth.scopes())
-    #r.redditor('AATroop').message('Test', 'test message from your favorite bot')
-    #print(r.user.me())
-
-    netsafe = 0
-    lastrefresh = datetime.datetime.now()
-    thistime = lastrefresh
-    fakePost(r, GameResult(1, "Red Sox", "Opponent", "40", "0", game_date=lastrefresh))
-    quit();
+    r.redditor('AATroop').message('Test', 'test message from your favorite bot')
+    GameUpdater.cur_scoreboard_status('bos')
+    quit()
     # starts the bot; runs indefinitely
     while True:
         gamestatus = getgamestatus('nym', thistime)
