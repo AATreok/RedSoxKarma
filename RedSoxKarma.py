@@ -164,28 +164,11 @@ def reinitialize():
     return praw.Reddit(client_id=user_client_id, client_secret=user_client_secret,
                           refresh_token=config['Bot Info']['Token'],user_agent=user_agent)
 
-def refreshaccess(prawobj):
-    access_key = 'BHS9gNIxHjnD3rnvkE1OTgbNuqI'
-    prawobj.set_oauth_app_info(client_id=user_client_id, client_secret=user_client_secret,
-                               redirect_uri=rs_redirect_uri)
-    access_information = prawobj.get_access_information(access_key)
-    return access_information
-
-
-def refreshtoken(prawobj):
-    refresh_token = '63398004-sIFMXiIG1EWqHExsYWtGtHO7vFc'
-    prawobj.set_oauth_app_info(client_id=user_client_id, client_secret=user_client_secret,
-                               redirect_uri=rs_redirect_uri)
-    access_information = prawobj.refresh_access_information(refresh_token)
-    return access_information
-
 if __name__ == '__main__':
-    print("Hello world!");
     config = configparser.ConfigParser();
     config.read('config.ini');
     print(config['Bot Info']['ClientID'])
     print(config['Bot Info']['Secret'])
-
     user_client_id = config['Bot Info']['ClientID']
     user_client_secret = config['Bot Info']['Secret']
     rs_redirect_uri = 'http://localhost:8080'
