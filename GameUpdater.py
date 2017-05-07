@@ -93,7 +93,7 @@ def create_game_result(gameresult, game_info, file_code):
 
 
 # Assumptions made:
-# 1. A doubleheader on the same d
+# 1. A doubleheader on the same
 def cur_scoreboard_status(team_to_check):
     game_list = []
     testday = '24'
