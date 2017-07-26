@@ -109,9 +109,9 @@ def cur_scoreboard_status(team_to_check):
         current_url = base_url + testdate
     else:
         current_url = base_url + \
-                      f'year_{current_time.year}/month_' \
-                      f'{current_time.month:02d}/day_{current_time.day}' \
-                      f'/master_scoreboard.xml'
+                      'year_{current_time.year}/month_' \
+                      '{current_time.month:02d}/day_{current_time.day}' \
+                      '/master_scoreboard.xml'
 
     # intentionally left blank- game time decided after scoreboard is checked
     gameresult = GameResult()

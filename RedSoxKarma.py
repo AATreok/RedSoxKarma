@@ -161,24 +161,20 @@ def initialauthorization(prawobj):
     webbrowser.open(urlauth)
 
 def reinitialize():
-    return praw.Reddit(client_id=user_client_id, client_secret=user_client_secret,
-                          refresh_token=config['Bot Info']['Token'],user_agent=user_agent)
-
-if __name__ == '__main__':
     config = configparser.ConfigParser();
     config.read('config.ini');
-    print(config['Bot Info']['ClientID'])
-    print(config['Bot Info']['Secret'])
     user_client_id = config['Bot Info']['ClientID']
     user_client_secret = config['Bot Info']['Secret']
-    rs_redirect_uri = 'http://localhost:8080'
     user_agent = 'RedsoxUpvoteBot:v1.1 by /u/AATroop'
-    r = praw.Reddit(user_agent=user_agent, client_id=user_client_id, client_secret=user_client_secret,
-                    redirect_uri=rs_redirect_uri)#'script:RedSoxUpvote:v1.0 (by /u/AATroop, /u/DatabaseCentral')
-    #initialauthorization(r)
+    return praw.Reddit(client_id=user_client_id, client_secret=user_client_secret,
+                          refresh_token=config['Bot Info']['Refresh_Token'],user_agent=user_agent)
+
+if __name__ == '__main__':
     r = reinitialize()
+
     print(r.auth.scopes())
     r.redditor('AATroop').message('Test', 'test message from your favorite bot')
+    exit()
     GameUpdater.cur_scoreboard_status('bos')
     quit()
     # starts the bot; runs indefinitely
