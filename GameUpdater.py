@@ -96,9 +96,9 @@ def create_game_result(gameresult, game_info, file_code):
 # 1. A doubleheader on the same
 def cur_scoreboard_status(team_to_check):
     game_list = []
-    testday = '24'
+    testday = '25'
     testmonth = '07'
-    testyear = '2016'
+    testyear = '2017'
     # Quick/dirty way of testing dates that doesn't require a lot of impl.
     testdate = 'year_' + testyear + '/month_' + testmonth + '/day_' + testday \
                + '/master_scoreboard.xml'
@@ -110,6 +110,7 @@ def cur_scoreboard_status(team_to_check):
     else:
         current_url = base_url + \
                       'year_{current_time.year}/month_' \
+                    # formats date because normally months are not prepended with 0
                       '{current_time.month:02d}/day_{current_time.day}' \
                       '/master_scoreboard.xml'
 
@@ -164,6 +165,6 @@ def cur_scoreboard_status(team_to_check):
             game_list.append(gameresult)
     gameresult_printer(gameresult)
 
-#if __name__ == '__main__':
-#    team_to_check = 'bos'
-#    cur_scoreboard_status(team_to_check);
+if __name__ == '__main__':
+    team_to_check = 'bos'
+    cur_scoreboard_status(team_to_check);

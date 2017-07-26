@@ -2,19 +2,20 @@
 import csv
 import datetime
 import random
+filename = 'ledger.csv'
 
 def write_to_log(new_log):
     try:
-        game_log = open('testlog.csv', 'r+')
+        game_log = open(filename, 'r+')
         logreader = csv.DictReader(game_log, 
             ['Game ID', 'Date', 'Opponent'], delimiter = ',')
     except IOError:
-        game_log = open('testlog.csv', 'w+')
+        game_log = open(filename, 'w+')
         # Basically, create an empty file so that it can read from it
         logwriter = csv.DictWriter(game_log, 
             ['Game ID', 'Date', 'Opponent'], delimiter = ',')
         game_log.close()
-        game_log = open('testlog.csv', 'r+')
+        game_log = open(filename, 'r+')
         logreader = csv.DictReader(game_log, 
             ['Game ID', 'Date', 'Opponent'], delimiter = ',')
     
@@ -54,7 +55,7 @@ def write_to_log(new_log):
                 
 
     # Write everything back into the file    
-    game_log = open('testlog.csv', 'w+')
+    game_log = open(filename, 'w+')
     spamwriter = csv.DictWriter(game_log, 
         ['Game ID', 'Date', 'Opponent'], delimiter = ',')
     for log_items in past_games:
@@ -66,7 +67,7 @@ def write_to_log(new_log):
 # looking at the entire row)
 def game_exists(game_id):
     try:
-        game_log = open('testlog.csv', 'r+')
+        game_log = open(filename, 'r+')
         logreader = csv.DictReader(game_log, 
             ['Game ID', 'Date', 'Opponent'], delimiter = ',')
     except IOError:
@@ -80,10 +81,17 @@ def game_exists(game_id):
     
     return False
 
+# unused
 def app_csv(log_entry):
-    game_log = open('testlog.csv', 'a+')
+    game_log = open(filename, 'a+')
     spamwriter = csv.DictWriter(game_log, ['Game ID', 'Date', 'Opponent'], delimiter = ',')
     spamwriter.writerow(log_entry)
+
+# clears the ledger by overwriting w/ a new, blank file
+def clear_Ledger():
+    open(filename, 'w').close()
+
+
 
 def backup_print(dict_list):
     # If you need to print the log stored as list, use this
@@ -108,4 +116,7 @@ def fake_log():
     return log_entry
     
 if __name__ == '__main__':
+    testlog = fake_log()
+    write_to_log(testlog)
     print(game_exists('2016/02/12/bosmlb-milmlb-1'))
+    clear_Ledger()
