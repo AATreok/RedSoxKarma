@@ -104,6 +104,8 @@ def backup_print(dict_list):
         print()
     
 def get_log_id(game_id):
+    if game_id == "Unknown":
+        return ""
     game_id = game_id[:10]
     return datetime.datetime.strptime(game_id, '%Y/%m/%d')
 

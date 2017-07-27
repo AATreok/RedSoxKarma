@@ -1,125 +1,9 @@
-import urllib.request
-import urllib.error
 import datetime
 import time
 import praw
 import webbrowser
 import configparser
 import GameUpdater
-from bs4 import BeautifulSoup
-
-
-class GameResult:
-    def __init__(self, code_result, team_name, opponent, score_rs, score_opp, game_date):
-        self.code_result = code_result
-        self.team_name = team_name
-        self.opponent = opponent
-        self.score_rs = score_rs
-        self.score_opp = score_opp
-        self.game_date = game_date
-
-
-# -1 --> error, check for multiple errors and send notice if problem persists for over 1>hr
-# 0 --> no game, wait until next day
-# 1 --> Red Sox won (home or away)
-# 2 --> Red Sox lost, wait until next GAME (not day, in case doublheader)
-# 4 --> continue, game in progress
-def getgamestatus(team, gametime):
-    team_abr = team
-    usehomedata = False
-    useawaydata = False
-    team_home = False
-    now = gametime
-    urlyear = 'year_' + str(now.year)
-    urlmonth = 'month_' + str(now.month).zfill(2)
-    urlday = 'day_' + str(now.day).zfill(2)
-
-    if usehomedata:
-        urlyear = 'year_2016'
-        urlmonth = 'month_06'
-        urlday = 'day_04'
-    elif useawaydata:
-        urlyear = 'year_2016'
-        urlmonth = 'month_08'
-        urlday = 'day_19'
-
-    gameresult = GameResult(None, None, None, None, None, now)
-    url = 'http://gd2.mlb.com/components/game/mlb/'
-    url = url + urlyear + '/' + urlmonth + '/' + urlday + '/miniscoreboard.xml'
-    print('Connecting to url: ' + url)
-    print('The game date is ' + str(now.day) + '/' + str(now.month) + '/' + str(now.year))
-    current_time = datetime.datetime.now()
-    print('The current date is ' + str(current_time.day) + '/' + str(current_time.month) + '/' + str(current_time.year))
-    try:
-        with urllib.request.urlopen(url) as response:
-            xml = response.read()
-    except (urllib.error.HTTPError, urllib.error.URLError, Exception) as e:
-        print("HTTPError message " + str(e))
-        gameresult.code_result = -1
-        return gameresult
-
-    soup = BeautifulSoup(xml, 'xml')
-    tags = soup.findAll('game', {'away_file_code': team_abr})
-    if not tags:
-        print('Tags is empty for away check...')
-        tags = soup.findAll('game', {'home_file_code': team_abr})
-        team_home = True
-        if not tags:
-            print('Red Sox are not playing today ', now.month, '/', now.day, '/', now.year)
-            print('Exiting with status 0')
-            gameresult.code_result = 0
-            return gameresult
-
-    for game_info in tags:
-        if game_info['status'] == 'Final' or game_info['status'] == 'Game Over':
-            if team_home:
-                print('Game is finalized!')
-                if int(game_info['home_team_runs']) > int(game_info['away_team_runs']):
-                    print('THE ' + game_info['home_team_name'].upper() + ' WON!')
-                    print('Final score: ' + game_info['home_team_name'] + ' ' + game_info['home_team_runs'] + ' ' +
-                          game_info[
-                              'away_team_name'] + ' ' +
-                          game_info['away_team_runs'])
-                    gameresult.code_result = 1
-                    gameresult.team_name = game_info['home_team_name']
-                    gameresult.opponent = game_info['away_team_name']
-                    gameresult.score_opp = game_info['away_team_runs']
-                    gameresult.score_rs = game_info['home_team_runs']
-                    return gameresult
-                else:
-                    print('The ' + game_info['home_team_name'] + ' lost :( [home]...')
-                    print('Final score: ' + game_info['home_team_name'] + ' ' + game_info['home_team_runs'] + ' ' +
-                          game_info[
-                              'away_team_name'] + ' ' +
-                          game_info['away_team_runs'])
-                    gameresult.code_result = 2
-                    return gameresult
-            else:
-                print('Game is finalized!')
-                if int(game_info['away_team_runs']) > int(game_info['home_team_runs']):
-                    print('THE ' + game_info['away_team_name'].upper() + ' WON!')
-                    print('Final score: ' + game_info['away_team_name'] + ' ' + game_info['away_team_runs'] + ' ' +
-                          game_info[
-                              'home_team_name'] + ' ' +
-                          game_info['home_team_runs'])
-                    gameresult.code_result = 1
-                    gameresult.team_name = game_info['away_team_name']
-                    gameresult.opponent = game_info['home_team_name']
-                    gameresult.score_opp = game_info['home_team_runs']
-                    gameresult.score_rs = game_info['away_team_runs']
-                    return gameresult
-                else:
-                    print('The ' + game_info['away_team_name'] + ' lost :( [away]...')
-                    print('Final score: ' + game_info['away_team_name'] + ' ' + game_info['away_team_runs'] + ' ' +
-                          game_info[
-                              'home_team_name'] + ' ' +
-                          game_info['home_team_runs'])
-                    gameresult.code_result = 2
-                    return gameresult
-        else:
-            print("Game hasn't started or in progress (but exists).")
-            gameresult.code_result = 4
-            return gameresult
 
 def seriesText(gameresult):
     return ''
@@ -132,15 +16,12 @@ def nextDay(freezetime):
         if safeiter >= 23:
             break
 
-
-def netError(freezetime):
+def netError():
     time.sleep(60)
-
 
 def sendProbe(prawobj):
     prawobj.send_message('AATroop', 'Warning',
                          'URL check has failed 5 times, please check MLB and personal server status!')
-
 
 def makePost(prawobj, gammeresult):
     prawobj.submit('RedSox', 'THE RED SOX WON UPVOTE PARTY', '')
@@ -148,17 +29,10 @@ def makePost(prawobj, gammeresult):
 
 def fakePost(prawobj, gameresult):
     title_text = 'THE ' + str(gameresult.team_name).upper() + ' BEAT THE ' + str(gameresult.opponent).upper() + ' UPVOTE PARTY!'
-    post_text = str(gameresult.team_name).upper() + ' BEAT THE ' + str(gameresult.opponent).upper() + ': ' + gameresult.score_rs + ' TO ' + gameresult.score_opp
+    post_text = str(gameresult.team_name).upper() + ' BEAT THE ' + str(gameresult.opponent).upper() + ': ' + gameresult.score_team + ' TO ' + gameresult.score_opp
     post_text = post_text + seriesText(gameresult)
     prawobj.subreddit('botbottestbed').submit(title=title_text,selftext=post_text,send_replies=False)
     #prawobj.submit('botbottestbed', title_text, post_text) archaic
-
-
-def initialauthorization(prawobj):
-    urlauth = prawobj.auth.url(['identity', 'edit', 'history', 'modconfig', 'modflair', 'modposts',
-                'modwiki', 'privatemessages', 'read', 'report', 'submit', 'vote', 'wikiedit', 'wikiread'],
-               duration='permanent', state=rs_redirect_uri)
-    webbrowser.open(urlauth)
 
 def reinitialize():
     config = configparser.ConfigParser();
@@ -170,16 +44,19 @@ def reinitialize():
                           refresh_token=config['Bot Info']['Refresh_Token'],user_agent=user_agent)
 
 if __name__ == '__main__':
+    team_shortcode = 'bos'
     r = reinitialize()
 
     print(r.auth.scopes())
-    r.redditor('AATroop').message('Test', 'test message from your favorite bot')
+    games = GameUpdater.cur_scoreboard_status('bos', "07/16/2017")
+    #print(games)
+    GameUpdater.gameresult_printer(games[0])
+    GameUpdater.gameresult_printer(games[1])
     exit()
-    GameUpdater.cur_scoreboard_status('bos')
-    quit()
+    #r.redditor('AATroop').message('Test', 'test message from your favorite bot')
     # starts the bot; runs indefinitely
     while True:
-        gamestatus = getgamestatus('nym', thistime)
+        gamestatus = GameUpdater.cur_scoreboard_statuts(team_shortcode)
         print('Gamestatus is ' + str(gamestatus.code_result))
         if gamestatus.code_result == -1:
             # URL error
